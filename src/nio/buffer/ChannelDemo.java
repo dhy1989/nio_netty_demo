@@ -45,7 +45,7 @@ public class ChannelDemo {
 
 
     /**
-     * 利用通道完成文件的复制（非直接缓冲区）花费时间582
+     * 利用通道完成文件的复制（非直接缓冲区）
      */
     @Test
     public void test1() throws IOException {
@@ -77,27 +77,53 @@ public class ChannelDemo {
             fis.close();
         }
         long end = System.currentTimeMillis();
-        System.out.println(end-start);
+        System.out.println(end - start);
     }
 
     /**
-     * 使用直接缓冲区完成文件的复制(内存映射文件) 花费时间228
+     * 使用直接缓冲区完成文件的复制(内存映射文件)
      */
     @Test
     public void test2() throws IOException {
         long start = System.currentTimeMillis();
         FileChannel inChannel = FileChannel.open(Paths.get("D:\\movie\\1.mp4"), StandardOpenOption.READ);
         FileChannel outChanel = FileChannel.open(Paths.get("D:\\movie\\2.mp4"), StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-       //内存映射文件
+        //内存映射文件
         MappedByteBuffer inMapperdBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
         MappedByteBuffer outMapperdBuffer = outChanel.map(FileChannel.MapMode.READ_WRITE, 0, inChannel.size());
         //直接对缓冲区进行数据的读写操作
-        byte[] dst=new byte[inMapperdBuffer.limit()];
+        byte[] dst = new byte[inMapperdBuffer.limit()];
         inMapperdBuffer.get(dst);
         outMapperdBuffer.put(dst);
         inChannel.close();
         outChanel.close();
         long end = System.currentTimeMillis();
-        System.out.println(end-start);
+        System.out.println(end - start);
+    }
+
+    /**
+     * 通道之间的数据传输(直接缓冲区)
+     */
+    @Test
+    public void test3() throws IOException {
+        long l = System.currentTimeMillis();
+        FileChannel inChannel = FileChannel.open(Paths.get("D:/movie/h.mkv"), StandardOpenOption.READ);
+        FileChannel outChannel = FileChannel.open(Paths.get("D:/movie/c.mkv"), StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+      //使用transferTo直接传输会出现数据丢失,原因是系统允许最大传输长度,可以分多次传
+       // inChannel.transferTo(0, inChannel.size(), outChannel); //17809
+        /*int buff=1024*1024;
+        long count= inChannel.size()/buff;
+        long start=0;
+        for (int i = 0; i <count ; i++) {
+            inChannel.transferTo(start,buff,outChannel);
+            start +=buff;
+        }
+        long end=inChannel.size()%buff;
+        inChannel.transferTo(start,end,outChannel);*/
+        outChannel.transferFrom(inChannel,0,inChannel.size());
+        inChannel.close();
+        outChannel.close();
+       long j= System.currentTimeMillis();
+        System.out.println(j-l);
     }
 }
