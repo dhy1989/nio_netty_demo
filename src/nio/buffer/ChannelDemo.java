@@ -2,16 +2,20 @@ package nio.buffer;
 
 import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 通道(channel)
@@ -109,8 +113,8 @@ public class ChannelDemo {
         long l = System.currentTimeMillis();
         FileChannel inChannel = FileChannel.open(Paths.get("D:/movie/h.mkv"), StandardOpenOption.READ);
         FileChannel outChannel = FileChannel.open(Paths.get("D:/movie/c.mkv"), StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-      //使用transferTo直接传输会出现数据丢失,原因是系统允许最大传输长度,可以分多次传
-       // inChannel.transferTo(0, inChannel.size(), outChannel); //17809
+        //使用transferTo直接传输会出现数据丢失,原因是系统允许最大传输长度,可以分多次传
+        // inChannel.transferTo(0, inChannel.size(), outChannel); //17809
         /*int buff=1024*1024;
         long count= inChannel.size()/buff;
         long start=0;
@@ -120,10 +124,75 @@ public class ChannelDemo {
         }
         long end=inChannel.size()%buff;
         inChannel.transferTo(start,end,outChannel);*/
-        outChannel.transferFrom(inChannel,0,inChannel.size());
+        outChannel.transferFrom(inChannel, 0, inChannel.size());
         inChannel.close();
         outChannel.close();
-       long j= System.currentTimeMillis();
-        System.out.println(j-l);
+        long j = System.currentTimeMillis();
+        System.out.println(j - l);
     }
+
+    /**
+     * 分散和聚集
+     */
+    @Test
+    public void test4() throws IOException {
+        RandomAccessFile randomAccessFile = new RandomAccessFile("doc/1.txt", "rw");
+        //1.获取通道
+        FileChannel fileChannel = randomAccessFile.getChannel();
+        //2.分配缓冲区的大小
+        ByteBuffer buffer1 = ByteBuffer.allocate(2048);
+        ByteBuffer buffer2 = ByteBuffer.allocate(1024 * 3);
+        //3.分散读取
+        ByteBuffer[] buffers = {buffer1, buffer2};
+        fileChannel.read(buffers);
+        for (ByteBuffer buffer : buffers) {
+            buffer.flip();
+        }
+
+        System.out.println(new String(buffers[0].array(), 0, buffers[0].limit()));
+        System.out.println("-----------------");
+        System.out.println(new String(buffers[1].array(), 0, buffers[1].limit()));
+
+        //4. 聚集写入
+        RandomAccessFile raf2 = new RandomAccessFile("doc/2.txt", "rw");
+        FileChannel channel2 = raf2.getChannel();
+        channel2.write(buffers);
+    }
+
+    //字符集
+    @Test
+    public void test5() throws IOException {
+        Charset cs1 = Charset.forName("GBK");
+
+        //获取编码器
+        CharsetEncoder ce = cs1.newEncoder();
+
+        //获取解码器
+        CharsetDecoder cd = cs1.newDecoder();
+
+        CharBuffer cBuf = CharBuffer.allocate(1024);
+        cBuf.put("尚硅谷威武！");
+        cBuf.flip();
+
+        //编码
+        ByteBuffer bBuf = ce.encode(cBuf);
+
+        for (int i = 0; i < 12; i++) {
+            System.out.println(bBuf.get());
+        }
+
+        //解码
+        bBuf.flip();
+        CharBuffer cBuf2 = cd.decode(bBuf);
+        System.out.println(cBuf2.toString());
+
+        System.out.println("------------------------------------------------------");
+
+        Charset cs2 = Charset.forName("GBK");
+        bBuf.flip();
+        CharBuffer cBuf3 = cs2.decode(bBuf);
+        System.out.println(cBuf3.toString());
+    }
+
+
 }
