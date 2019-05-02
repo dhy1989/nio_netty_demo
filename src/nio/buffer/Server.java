@@ -8,6 +8,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Scanner;
 
 /**
  * @author dinghy
@@ -31,6 +32,9 @@ public class Server {
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey sk = it.next();
+                if(sk.isValid()){
+                        accept(selector,sk);
+                }
                 //8.判断具体什么事件准备就绪
                 if (sk.isAcceptable()) {
                     //10.如果接受就绪,获取客户端连接
@@ -50,6 +54,17 @@ public class Server {
                         System.out.println(new String(buffer.array(), 0, len));
                         buffer.clear();
                     }
+                    channel.register(selector,SelectionKey.OP_WRITE);
+                }else if(sk.isWritable()){
+                    SocketChannel channel= (SocketChannel) sk.channel();
+                    Scanner scanner = new Scanner(System.in);
+                    String line = scanner.nextLine();
+                    ByteBuffer buffer  =ByteBuffer.allocate(1024);
+                    buffer.put(line.getBytes());
+                    buffer.flip();
+                    channel.write(buffer);
+                    channel.register(selector,SelectionKey.OP_ACCEPT);
+                    buffer.clear();
                 }
                 //15.取消选择键
                 it.remove();
@@ -60,4 +75,22 @@ public class Server {
         }
     }
 
+
+    private static void accept(Selector selector,SelectionKey key){
+        try {
+            // 此通道为init方法中注册到Selector上的ServerSocketChannel
+            ServerSocketChannel serverChannel = (ServerSocketChannel)key.channel();
+            // 阻塞方法，当客户端发起请求后返回。 此通道和客户端一一对应。
+            SocketChannel channel = serverChannel.accept();
+            channel.configureBlocking(false);
+            // 设置对应客户端的通道标记状态，此通道为读取数据使用的。
+            channel.register(selector, SelectionKey.OP_READ);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
+
+
