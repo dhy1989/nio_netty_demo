@@ -61,6 +61,7 @@ public class Server {
                     buffer.flip();
                     channel.write(buffer);
                     buffer.clear();
+                    channel.register(selector, SelectionKey.OP_READ);
                 }
                 //15.取消选择键
                 it.remove();
