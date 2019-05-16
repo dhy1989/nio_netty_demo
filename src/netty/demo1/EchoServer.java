@@ -23,7 +23,7 @@ public class EchoServer {
     }
 
     public void start() {
-       final EchoClientHandler serverHandler = new EchoClientHandler();
+       final EchoServerHandler serverHandler = new EchoServerHandler();
         EventLoopGroup group = new NioEventLoopGroup();
         //服务端启动必备
         ServerBootstrap bootstrap = new ServerBootstrap();
