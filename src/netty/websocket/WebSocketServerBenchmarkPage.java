@@ -28,9 +28,9 @@ public final class WebSocketServerBenchmarkPage {
 
     public static ByteBuf getContent(String webSocketLocation) {
         return Unpooled.copiedBuffer(
-                "<html><head><title>Web Socket Performance Test</title></head>" + NEWLINE +
+                "<html><head><title>Web Socket Performance TestSerialize</title></head>" + NEWLINE +
                 "<body>" + NEWLINE +
-                "<h2>WebSocket Performance Test</h2>" + NEWLINE +
+                "<h2>WebSocket Performance TestSerialize</h2>" + NEWLINE +
                 "<label>Connection Status:</label>" + NEWLINE +
                 "<label id=\"connectionLabel\"></label><br />" + NEWLINE +
 
