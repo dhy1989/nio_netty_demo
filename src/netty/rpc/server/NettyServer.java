@@ -36,7 +36,6 @@ public class NettyServer {
             sync.channel().closeFuture();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        } finally {
             bossGroup.shutdownGracefully();
             workGroup.shutdownGracefully();
         }
