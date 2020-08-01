@@ -1,7 +1,9 @@
 package netty.rpc.server;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.CharsetUtil;
 import netty.rpc.service.HelloService;
 import netty.rpc.service.impl.HelloServiceImpl;
 
@@ -17,7 +19,8 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
         String protocol="HelloService#";
         if(message.startsWith(protocol)){
             String substring = message.substring(protocol.length(), message.length());
-            new HelloServiceImpl().hello(substring);
+            String hello = new HelloServiceImpl().hello(substring);
+            ctx.writeAndFlush(Unpooled.copiedBuffer(hello, CharsetUtil.UTF_8));
         }
     }
 
