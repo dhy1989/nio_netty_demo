@@ -58,7 +58,14 @@ public class NettyClient {
         NettyClient nettyClient=new NettyClient();
         String protocol="HelloService#";
         HelloService bean = (HelloService) nettyClient.getBean(HelloService.class, protocol);
-        String hello = bean.hello("你好呀!!");
-        System.out.println(hello);
+        for (int i = 0; i <10 ; i++) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            String hello = bean.hello("你好呀!!");
+            System.out.println(hello);
+        }
     }
 }
